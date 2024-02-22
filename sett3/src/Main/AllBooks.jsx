@@ -1,55 +1,38 @@
-import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Carts from "../Cards/Carts";
+import {
+  allBooks,
+  getBooks,
+  isAllBooksError,
+  isAllBooksLoading,
+} from "../reducers/booksSlice";
+import { useEffect } from "react";
 
 const AllBooks = () => {
-  const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [errorBooks, setErrorBooks] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  console.log(books);
-
-  const getBooks = async () => {
-    setLoading(true);
-    try {
-      const resp = await fetch("https://epibooks.onrender.com/");
-      const data = await resp.json();
-      setBooks(data);
-      setBooks(data.slice(0, 12));
-      setLoading(false);
-    } catch (e) {
-      setErrorBooks(e.message);
-    }
-  };
+  const books = useSelector(allBooks);
+  const loading = useSelector(isAllBooksLoading);
+  const error = useSelector(isAllBooksError);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    getBooks();
-  }, []);
-
-  const changeInput = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const filterBooks = books.filter((book) =>
-    book.title.toLowerCase().includes(searchTerm.toLocaleLowerCase())
-  );
+    dispatch(getBooks());
+  }, [dispatch]);
 
   return (
     <div className="Container">
       <div className="row">
-        {errorBooks && <div>qualcosa non va...</div>}
-        {loading && !errorBooks && <div>Caricamento in corso...</div>}
-        {!loading && !errorBooks && (
+        {error && <div>Qualcosa non va...</div>}
+        {loading && !error && <div>Caricamento in corso...</div>}
+        {!loading && !error && (
           <div>
-            <input
-              type="text"
-              name="changhe"
-              placeholder="Cerca un libro..."
-              value={searchTerm}
-              onChange={changeInput}
-            />
             <div className="container d-flex flex-wrap justify-space-beetwen gap-3 mt-3">
-              {filterBooks.map((book) => (
-                <Carts title={book.title} price={book.price} img={book.img} />
+              {books.map((book) => (
+                <Carts
+                  key={book.id}
+                  title={book.title}
+                  price={book.price}
+                  img={book.img}
+                />
               ))}
             </div>
           </div>
